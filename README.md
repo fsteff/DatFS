@@ -11,8 +11,7 @@ The core part that already takes care of the secure file distribution is [Dat](h
 To maintain privacy and to control who has access to a file/folder the dat archives have to be encrypted.
 To allow easy app development the framework exposes a HTTP API, for which a JS library will be provided.
 This API needs to include an access permission module to protect from harmful software and destructive bugs.
-Possible solutions to these problems will be discussed in the following.
-
+Possible solutions to these problems will be discussed in the following.<br>
 *To make the text easier readable it is written as if it was already implemented.*
 
 ## Overview
@@ -62,7 +61,7 @@ For the discovery of peers there multiple possibilities:
 * Peer exchange between nodes of a swarm
 
 For indirect routing a peer may "ask" an other peer to forward messages to an other peer. But to prevent attacks this other peer will only do accept this if it trusts the sender.
-Therefore a peer stores a multi-dimensional trust value that is based on a range of statistics:
+Therefore a peer stores a multi-dimensional trust value that is based on a range of statistics:<br>
 *(TODO: evaluate which statistics are useful for this)*
 
 **Public/Compatibility mode (dat's discovery-swarm):**
@@ -79,5 +78,5 @@ For public DataObjects/Archives and to enable compatibility to the rest of the d
 
 ## What next?
 
-I am planning to implement this (or at least a subset of it) as part of my bachelor's thesis, starting fall 2018.
+I am planning to implement this (or at least a subset of it) as part of my bachelor's thesis, starting fall 2018.<br>
 I would be happy to hear your feedback, just open an issue or contact me directly.
