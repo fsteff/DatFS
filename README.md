@@ -43,3 +43,5 @@ For public DataObjects/Archives and to enable compatibility to the rest of the d
 * [hyperdrive](https://github.com/mafintosh/hyperdrive)
 * [hypercore](https://github.com/mafintosh/hypercore)
 * [hyperdb](https://github.com/mafintosh/hyperdb)
+* [discovery-swarm](https://github.com/mafintosh/discovery-swarm)
+* [libp2p](https://libp2p.io/)
