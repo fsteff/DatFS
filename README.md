@@ -1,16 +1,16 @@
 # DatFS
 
-Dropbox-like system based on Dat
+Dropbox-like system based on Dat<br>
 Current status: **Proposal**
 
 ## Abstract
 
 Cooperative, distributed and secure applications are hard to develop.
 This is a proposal for a framework that aims to solve this problem.
-The core part that already takes care of the secure file distribution is [Dat](https://datproject.org).
-To maintain privacy and to control who has access to a file/folder the dat archives have to be encrypted.
-To allow easy app development the framework exposes a HTTP API, for which a JS library will be provided.
-This API needs to include an access permission module to protect from harmful software and destructive bugs.
+The core part that already takes care of the secure file distribution is [Dat](https://datproject.org).<br>
+To maintain privacy and to control who has access to a file/folder the dat archives have to be encrypted.<br>
+To allow easy app development the framework exposes a HTTP API, for which a JS library will be provided.<br>
+This API needs to include an access permission module to protect from harmful software and destructive bugs.<br>
 Possible solutions to these problems will be discussed in the following.<br>
 *To make the text easier readable it is written as if it was already implemented.*
 
@@ -24,19 +24,19 @@ Every entity has a cryptographic public and a private key, where the public key 
 ### [DataObject](#dataobject)
 
 A DataObject can be a file, directory, symbolic link or just a blob of data.
-DatFS logically is a tree with DataObjects as nodes. A file or blob is a leaf node and a directory or a symbolic is a node that refers to one many further DataObject(s).
+DatFS logically is a tree with DataObjects as nodes. A file or blob is a leaf node and a directory or a symbolic is a node that refers to one many further DataObject(s).<br>
 DataObjects are packed into Dat archives induvidially or in groups, depending on multiple factors.
 
 ### [Routing](#routing)
 
-DatFS uses [discovery-swarm](https://github.com/mafintosh/discovery-swarm) and/or [libp2p](https://libp2p.io/) for routing.
-Per default a swarm of all known and trusted entities is created using libp2p, which should enhance performance and routing capabilities compared to discovery-swarm, which is usually used by Dat.
+DatFS uses [discovery-swarm](https://github.com/mafintosh/discovery-swarm) and/or [libp2p](https://libp2p.io/) for routing.<br>
+Per default a swarm of all known and trusted entities is created using libp2p, which should enhance performance and routing capabilities compared to discovery-swarm, which is usually used by Dat.<br>
 For public DataObjects/Archives and to enable compatibility to the rest of the dat ecosystem discovery-swarm is used.
 
 ## Entity
 
-An entity can be a device, app or user and has a unique id.
-Every entity has a cryptographic public and a private key, where the public key is visible to anyone and the private key is stored in a safe place.
+An entity can be a device, app or user and has a unique id.<br>
+Every entity has a cryptographic public and a private key, where the public key is visible to anyone and the private key is stored in a safe place.<br>
 To make things easier the entity id is using libp2p's [peer-id](https://github.com/libp2p/js-peer-id) which consists of at least a public key and its SHA-256 hash value(-[multihash](https://github.com/multiformats/multihash)).
 If the private key is known it is also stored in the peer-id object.
 An entity may also include some additional information:
@@ -50,7 +50,7 @@ An entity may also include some additional information:
 
 DatFS uses [discovery-swarm](https://github.com/mafintosh/discovery-swarm) and/or [libp2p](https://libp2p.io/) for routing.
 **Default usecase (libp2p):**
-A set of swarms of all known and trusted entities is created using libp2p.
+A set of swarms of all known and trusted entities is created using libp2p.<br>
 Such a swarm consists of a small (~ max. 100) number of entities that have something in common. Every entity/node has either a direct or indirect connection to every other node in the swarm.<br>
 *(TODO: do some research about to what extent this is implemented in libp2p)*<br>
 Multiple protocols may be multiplexed over each connection - eg. Dat ([hypercore-protocol](https://github.com/mafintosh/hypercore-protocol)), some future DatFS internal protocol or an app specific stream.
@@ -78,5 +78,5 @@ For public DataObjects/Archives and to enable compatibility to the rest of the d
 
 ## What next?
 
-I am planning to implement this (or at least a subset of it) as part of my bachelor's thesis, starting fall 2018.<br>
+I am planning to implement this (or at least a subset of it) as part of my bachelor's thesis, starting fall 2018.<br><br>
 I would be happy to hear your feedback, just open an issue or contact me directly.
