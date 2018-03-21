@@ -51,8 +51,8 @@ An entity may also include some additional information:
 DatFS uses [discovery-swarm](https://github.com/mafintosh/discovery-swarm) and/or [libp2p](https://libp2p.io/) for routing.
 **Default usecase (libp2p):**
 A set of swarms of all known and trusted entities is created using libp2p.
-Such a swarm consists of a small (~ max. 100) number of entities that have something in common. Every entity/node has either a direct or indirect connection to every other node in the swarm.
-*(TODO: do some research about to what extent this is implemented in libp2p)*
+Such a swarm consists of a small (~ max. 100) number of entities that have something in common. Every entity/node has either a direct or indirect connection to every other node in the swarm.<br>
+*(TODO: do some research about to what extent this is implemented in libp2p)*<br>
 Multiple protocols may be multiplexed over each connection - eg. Dat ([hypercore-protocol](https://github.com/mafintosh/hypercore-protocol)), some future DatFS internal protocol or an app specific stream.
 
 For the discovery of peers there multiple possibilities:
