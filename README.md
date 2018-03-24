@@ -46,6 +46,9 @@ An entity may also include some additional information:
 
 ## DataObject
 
+*TODO*
+For encrypting the data [hypercore-encrypted](https://github.com/fsteff/hypercore-encrypted) could be of use.
+
 ## Routing
 
 DatFS uses [discovery-swarm](https://github.com/mafintosh/discovery-swarm) and/or [libp2p](https://libp2p.io/) for routing.
@@ -72,6 +75,7 @@ For public DataObjects/Archives and to enable compatibility to the rest of the d
 * [dat-node](https://github.com/datproject/dat-node)
 * [hyperdrive](https://github.com/mafintosh/hyperdrive)
 * [hypercore](https://github.com/mafintosh/hypercore)
+* [hypercore-encrypted](https://github.com/fsteff/hypercore-encrypted)
 * [hyperdb](https://github.com/mafintosh/hyperdb)
 * [discovery-swarm](https://github.com/mafintosh/discovery-swarm)
 * [libp2p](https://libp2p.io/)
