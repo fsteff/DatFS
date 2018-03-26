@@ -1,7 +1,8 @@
 # DatFS
 
 Dropbox-like system based on Dat<br>
-Current status: **Proposal**
+Current status: **Proposal (WIP)**
+*Warning: I am no cryptography expert, before any of this is implemented it should be reviewed by someone with more expertise*
 
 ## Abstract
 
@@ -25,7 +26,7 @@ Every entity has a cryptographic public and a private key, where the public key 
 
 A DataObject can be a file, directory, symbolic link or just a blob of data.
 DatFS logically is a tree with DataObjects as nodes. A file or blob is a leaf node and a directory or a symbolic is a node that refers to one many further DataObject(s).<br>
-DataObjects are packed into Dat archives induvidially or in groups, depending on multiple factors.
+DataObjects are packed into Dat [HyperDB](https://github.com/mafintosh/hyperdb) instances induvidially or in groups, depending on multiple factors.
 
 ### [Routing](#routing)
 
@@ -40,14 +41,33 @@ Every entity has a cryptographic public and a private key, where the public key 
 To make things easier the entity id is using libp2p's [peer-id](https://github.com/libp2p/js-peer-id) which consists of at least a public key and its SHA-256 hash value(-[multihash](https://github.com/multiformats/multihash)).
 If the private key is known it is also stored in the peer-id object.
 An entity may also include some additional information:
+
 * Contact (eg. [hCard](https://en.wikipedia.org/wiki/HCard)) or public profile information if the entity is a user
 * Owner entity-id, type (pc, mobile, provider,...) if the entity is a device
 * Description (developer, version, permissions, ...) if the entity is an app
 
+### Outbox
+
+Each entity has a number of outboxes that are used to communicate with other entities.<br>
+Each outbox is identified using the SHA-256 hash of the recipient's public key plus the entity's public key as salt.<br>
+Essentially the outbox is a DataObject, but encrypted using the recipient's public key.<br>
+As this must be publically available (to allow an entitiy to contact an other entity it has not communicated with before), there is always a little chance someone misuses this to find out who is communicating with whom. But to be able to do this the attacker has to know the public keys of both entities.
+
 ## DataObject
 
-*TODO*
-For encrypting the data [hypercore-encrypted](https://github.com/fsteff/hypercore-encrypted) could be of use.
+A DataObject can be a file, directory, symbolic link or just a blob of data.
+DatFS logically is a tree with DataObjects as nodes. A file or blob is a leaf node and a directory or a symbolic is a node that refers to one many further DataObject(s).<br>
+DataObjects are packed into Dat [HyperDB](https://github.com/mafintosh/hyperdb) instances induvidially or in groups, depending on multiple factors.<br>
+If a DataObject is a subdirectory of a other DataObject, the HyperDb instance is simply "mounted" onto a directory of the parent DataObject.<br>
+*TODO: convince the dat team to implement a way to mount a hyperdb instance in an other hyperdb (or implement it)*<br>
+HyperDB uses a number of [hypercore](https://github.com/mafintosh/hypercore) append-only feeds, which have to be encrypted if not meant to be publically available.<br>
+To make it possible to add and remove entities that are able to read a DataObject, each hypercore feed has to be encrypted induvidially using a number of keys.<br>
+If an entity should not be able to read future changes anymore, a new key is generated for every hypercore feed. Every future change, which is nothing other than a new entry in one of the feeds, this uses now a new key and the entity is not able to read it anymore.<br>
+*For encrypting the data a modified version of HyperDB built on the top of [hypercore-encrypted](https://github.com/fsteff/hypercore-encrypted) (or something similar as this, for now, is only a proof of concept) could be of use.*<br><br>
+To make the management of readers and writers of induvidial DataObjects easier, hyperdb could use some more features: *(TODO: convince the dat team to implement that or implement ourself)*<br>
+* Removing writers (currently not possible, but will for sure be added)
+* Sharing the feeds containing the writers between multiple hyperdb instances
+* Packing multiple entity entries to one (eg. a user may have multiple devices) so this can be managed somewhere else - (dangerous inconsistencies possible)
 
 ## Routing
 
@@ -59,6 +79,7 @@ Such a swarm consists of a small (~ max. 100) number of entities that have somet
 Multiple protocols may be multiplexed over each connection - eg. Dat ([hypercore-protocol](https://github.com/mafintosh/hypercore-protocol)), some future DatFS internal protocol or an app specific stream.
 
 For the discovery of peers there multiple possibilities:
+
 * mDNS ([libp2p-mdns](https://github.com/libp2p/js-libp2p-mdns))
 * Kademlia DHT ([libp2p-kad-dht](https://github.com/libp2p/js-libp2p-kad-dht))
 * Peer exchange between nodes of a swarm
