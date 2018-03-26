@@ -1,7 +1,7 @@
 # DatFS
 
 Dropbox-like system based on Dat<br>
-Current status: **Proposal (WIP)**
+Current status: **Proposal (WIP)** <br>
 *Warning: I am no cryptography expert, before any of this is implemented it should be reviewed by someone with more expertise*
 
 ## Abstract
@@ -10,8 +10,8 @@ Cooperative, distributed and secure applications are hard to develop.
 This is a proposal for a framework that aims to solve this problem.
 The core part that already takes care of the secure file distribution is [Dat](https://datproject.org).<br>
 To maintain privacy and to control who has access to a file/folder the dat archives have to be encrypted.<br>
-To allow easy app development the framework exposes a HTTP API, for which a JS library will be provided.<br>
-This API needs to include an access permission module to protect from harmful software and destructive bugs.<br>
+To allow easy app development the framework exposes a JavaScript and/or WebAssembly API.<br>
+This API needs to include an access permission module to protect from harmful software and destructive bugs. Also, this should check the integrity of the executeable to improve security<br>
 Possible solutions to these problems will be discussed in the following.<br>
 *To make the text easier readable it is written as if it was already implemented.*
 
@@ -33,6 +33,10 @@ DataObjects are packed into Dat [HyperDB](https://github.com/mafintosh/hyperdb) 
 DatFS uses [discovery-swarm](https://github.com/mafintosh/discovery-swarm) and/or [libp2p](https://libp2p.io/) for routing.<br>
 Per default a swarm of all known and trusted entities is created using libp2p, which should enhance performance and routing capabilities compared to discovery-swarm, which is usually used by Dat.<br>
 For public DataObjects/Archives and to enable compatibility to the rest of the dat ecosystem discovery-swarm is used.
+
+### [API](#api)
+
+*TODO*
 
 ## Entity
 
