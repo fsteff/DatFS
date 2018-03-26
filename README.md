@@ -40,7 +40,7 @@ For public DataObjects/Archives and to enable compatibility to the rest of the d
 
 ## Example visualisation
 
-![example.png](https://raw.githubusercontent.com/fsteff/DatFS/branch/example.png)
+[[https://raw.githubusercontent.com/fsteff/DatFS/master/example.png]]
 
 ## Entity
 
