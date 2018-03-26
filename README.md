@@ -38,6 +38,10 @@ For public DataObjects/Archives and to enable compatibility to the rest of the d
 
 *TODO*
 
+## Example visualisation
+
+![example.png](https://raw.githubusercontent.com/fsteff/DatFS/branch/example.png)
+
 ## Entity
 
 An entity can be a device, app or user and has a unique id.<br>
@@ -49,6 +53,9 @@ An entity may also include some additional information:
 * Contact (eg. [hCard](https://en.wikipedia.org/wiki/HCard)) or public profile information if the entity is a user
 * Owner entity-id, type (pc, mobile, provider,...) if the entity is a device
 * Description (developer, version, permissions, ...) if the entity is an app
+
+<br>
+*TODO: do research on [hyperidentity](https://github.com/poga/hyperidentity)*
 
 ### Outbox
 
@@ -104,6 +111,7 @@ For public DataObjects/Archives and to enable compatibility to the rest of the d
 * [hyperdb](https://github.com/mafintosh/hyperdb)
 * [discovery-swarm](https://github.com/mafintosh/discovery-swarm)
 * [libp2p](https://libp2p.io/)
+* [hyperidentity](https://github.com/poga/hyperidentity)
 
 ## What next?
 
