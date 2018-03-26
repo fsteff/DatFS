@@ -55,7 +55,7 @@ An entity may also include some additional information:
 * Description (developer, version, permissions, ...) if the entity is an app
 
 <br>
-*TODO: do research on [hyperidentity](https://github.com/poga/hyperidentity)*
+*TODO: do research on [hyperidentity](https://github.com/poga/hyperidentity) *
 
 ### Outbox
 
