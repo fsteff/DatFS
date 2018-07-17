@@ -1,0 +1,32 @@
+{
+  "name": "datfs",
+  "version": "0.0.1",
+  "description": "experimental framework for dat-based secure apps",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fsteff/DatFS.git"
+  },
+  "keywords": [
+    "dat",
+    "p2p"
+  ],
+  "author": "Stefan Fixl (Fsteff)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fsteff/DatFS/issues"
+  },
+  "homepage": "https://github.com/fsteff/DatFS#readme",
+  "dependencies": {
+    "hypercore-encrypted": "0.0.2",
+    "hyperdb": "^3.3.0",
+    "hyperdb-encrypted": "^3.3.0",
+    "q": "^1.5.1"
+  },
+  "devDependencies": {
+    "standard": "^11.0.1"
+  }
+}
