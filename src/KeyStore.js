@@ -13,15 +13,18 @@ class KeyStore extends DataObject {
     super(storage, key, opts)
 
     const self = this
-    this.db.on('ready', (err) => {
+    this.getDb().then(db => db.on('ready', function(err) {
       if (err) throw err
 
       cryptoLib.registerOnBookNotFound(tryRegisterKey)
-    })
+    }))
 
-    function tryRegisterKey (id) {
+    function tryRegisterKey (id, cb) {
       self.get(id).then((book) => {
-        if (book) cryptoLib.addBook(id, book)
+        if (book){ 
+          cryptoLib.addBook(id, book)
+          cb(book)
+        }
       })
     }
   }
