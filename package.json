@@ -4,7 +4,7 @@
   "description": "experimental framework for dat-based secure apps",
   "main": "index.js",
   "scripts": {
-    "test": "test"
+    "test": "standard --fix && tape ./test/*.js"
   },
   "repository": {
     "type": "git",
@@ -27,6 +27,8 @@
     "q": "^1.5.1"
   },
   "devDependencies": {
-    "standard": "^11.0.1"
+    "random-access-memory": "^3.0.0",
+    "standard": "^11.0.1",
+    "tape": "^4.9.1"
   }
 }

@@ -1,12 +1,10 @@
 const DB = require('hyperdb-encrypted')
 const PublicDB = require('hyperdb')
-const hypercore = require('hypercore-encrypted')
 const Q = require('q')
-const KeyStore = require('./KeyStore')
 const utils = require('./CryptoLibUtils')
 
-const cryptoLib = hypercore.CryptoLib.getInstance()
-const CryptoBook = hypercore.CryptoBook
+// KeyStore is lazy loaded to avoid cyclic references
+let KeyStore = null
 
 class DataObject {
   constructor (storage, key, opts) {
@@ -17,16 +15,15 @@ class DataObject {
     this._db = null
     this._dbPromise = Q.defer()
 
-    let defer = false
     const keyStr = key ? key.toString('hex') : null
     if (key && this.encrypted) {
       utils.getBook(keyStr).then(createNow)
-    }else{
+    } else {
       createNow()
     }
 
     function createNow () {
-      if(! self._db){
+      if (!self._db) {
         const db = create(storage, key, opts)
         db.on('ready', () => {
           self._db = db
@@ -38,7 +35,7 @@ class DataObject {
 
   getDb () {
     const self = this
-    if(this._db) return Q.fcall(()=>{return self._db})
+    if (this._db) return Q.fcall(() => { return self._db })
     else return this._dbPromise.promise
   }
 
@@ -53,9 +50,10 @@ class DataObject {
 
   get (key, opts) {
     const def = Q.defer()
-    this.getDb().then(db => db.get(key, opts, (err, data) => {
-      if (err) def.reject(err)
-      else def.resolve(data)
+    this.getDb().then(db => 
+      db.get(key, opts, (err, data) => {
+        if (err) def.reject(err)
+        else def.resolve(data)
     }))
     return def.promise
   }
@@ -69,8 +67,12 @@ class DataObject {
     return def.promise
   }
 
-  createKeyStore(storage, noEncryption){
+  createKeyStore (storage, noEncryption) {
     noEncryption = noEncryption || false
+
+    // lazy load KeyStore
+    if (!KeyStore) KeyStore = require('./KeyStore')
+
     const store = new KeyStore(storage, null, {noEncryption: noEncryption})
     this.getDb().then(db => {
       db.feeds.forEach(feed => {
