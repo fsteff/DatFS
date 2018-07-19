@@ -21,10 +21,15 @@
   },
   "homepage": "https://github.com/fsteff/DatFS#readme",
   "dependencies": {
+    "dat-swarm-defaults": "^1.0.1",
+    "debug": "^3.1.0",
+    "discovery-swarm": "^5.1.2",
     "hypercore-encrypted": "0.0.2",
     "hyperdb": "^3.3.0",
     "hyperdb-encrypted": "^3.3.0",
-    "q": "^1.5.1"
+    "q": "^1.5.1",
+    "websocket-stream": "^5.1.2",
+    "xtend": "^4.0.1"
   },
   "devDependencies": {
     "random-access-memory": "^3.0.0",

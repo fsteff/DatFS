@@ -3,14 +3,15 @@ const cryptoLib = require('hypercore-encrypted').CryptoLib.getInstance()
 const tape = require('tape')
 const ram = require('random-access-memory')
 
-function create (key) {
-  return new DataObject(ram, key, {valueEncoding: 'utf-8'})
+function create (key, opts) {
+  opts = opts || {valueEncoding: 'utf-8'}
+  opts = Object.assign({}, opts)
+  return new DataObject(ram, key, opts)
 }
 
-function replicate (a, b, opts) {
-  opts = opts || {live: true}
-  var stream = a.replicate(opts)
-  return stream.pipe(b.replicate(opts)).pipe(stream)
+function replicate (a, b) {
+  var stream = a.replicate({live: true})
+  return stream.pipe(b.replicate({live: true})).pipe(stream)
 }
 
 tape('create', t => {
@@ -31,11 +32,12 @@ tape('create', t => {
 
 tape('replicate & authorize', t => {
   t.plan(2)
-  const obj = create()
+  // const opts = {valueEncoding: 'utf-8', noEncryption: true}
+  const obj = create(null, {valueEncoding: 'utf-8', noEncryption: true})
   var clone = null
   obj.put('hello', 'world').then(() => {
     obj.getDb().then(db => {
-      clone = create(db.local.key)
+      clone = create(db.key, {valueEncoding: 'utf-8', noEncryption: true})
     }).then(dbs)
   })
 
@@ -49,11 +51,11 @@ tape('replicate & authorize', t => {
         .then(repl))
   }
 
-  function repl () {
-    replicate(a, b)
+  function repl (val) {
+    replicate(a, b, {live: true})
     clone.get('hello')
       .then(
-          (data) => t.same(data[0].value, 'world'))
+        (data) => t.same(data[0].value, 'world'))
       .then(auth)
   }
 

@@ -2,13 +2,15 @@ const DB = require('hyperdb-encrypted')
 const PublicDB = require('hyperdb')
 const Q = require('q')
 const utils = require('./CryptoLibUtils')
+const Swarm = require('./Swarm')
+const debug = require('debug')('DataObject')
 
 // KeyStore is lazy loaded to avoid cyclic references
 let KeyStore = null
 
 class DataObject {
   constructor (storage, key, opts) {
-    opts = opts || {}
+    opts = Object.assign({}, opts)
     this.encrypted = !opts.noEncryption
     const create = opts.noEncryption ? PublicDB : DB
     const self = this
@@ -17,7 +19,9 @@ class DataObject {
 
     const keyStr = key ? key.toString('hex') : null
     if (key && this.encrypted) {
-      utils.getBook(keyStr).then(createNow)
+      utils.getBook(keyStr).then(createNow, (error) => {
+        debug('could not find any keys for ' + keyStr + ' because of: ' + error)
+      })
     } else {
       createNow()
     }
@@ -25,7 +29,9 @@ class DataObject {
     function createNow () {
       if (!self._db) {
         const db = create(storage, key, opts)
-        db.on('ready', () => {
+        debug('created hyperdb for ' + keyStr)
+        db.ready(() => {
+          debug('hyperdb for ' + keyStr + ' is ready')
           self._db = db
           self._dbPromise.resolve(self._db)
         })
@@ -49,12 +55,13 @@ class DataObject {
   }
 
   get (key, opts) {
+    opts = Object.assign({}, opts)
     const def = Q.defer()
-    this.getDb().then(db => 
+    this.getDb().then(db =>
       db.get(key, opts, (err, data) => {
         if (err) def.reject(err)
         else def.resolve(data)
-    }))
+      }))
     return def.promise
   }
 
@@ -81,6 +88,39 @@ class DataObject {
       })
     })
     return store
+  }
+
+  joinNetwork (opts) {
+    opts = Object.assign({}, opts)
+
+    const def = Q.defer()
+    this.getDb().then(createStream)
+
+    function createStream (db) {
+      const stream = function (peer) {
+        var stream = db.replicate({
+          upload: !(opts.upload === false),
+          download: opts.download, // ok like that?
+          live: !opts.end
+        })
+        stream.on('close', function () {
+          debug('Stream close')
+        })
+        stream.on('error', function (err) {
+          debug('Replication error:', err.message)
+        })
+        stream.on('end', function () {
+          debug('Replication stream ended')
+        })
+        return stream
+      }
+
+      const swarm = new Swarm(stream, opts)
+      swarm.join(db.discoveryKey, { announce: !(opts.upload === false) })
+
+      def.resolve(swarm)
+    }
+    return def.promise
   }
 }
 
