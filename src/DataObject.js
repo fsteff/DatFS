@@ -47,31 +47,96 @@ class DataObject {
 
   put (key, value, opts) {
     const def = Q.defer()
-    this.getDb().then(db => db.put(key, value, opts, (err) => {
-      if (err) def.reject(err)
-      else def.resolve()
-    }))
+    this.getDb().then(put, error)
     return def.promise
+
+    function put (db) {
+      db.put(key, value, opts, (err) => {
+        if (err) error(err)
+        else def.resolve()
+      })
+    }
+
+    function error (err) {
+      if (err) def.reject(err)
+    }
   }
 
   get (key, opts) {
     opts = Object.assign({}, opts)
     const def = Q.defer()
-    this.getDb().then(db =>
+    this.getDb().then(get, error)
+    return def.promise
+
+    function get (db) {
       db.get(key, opts, (err, data) => {
         if (err) def.reject(err)
         else def.resolve(data)
-      }))
-    return def.promise
+      })
+    }
+
+    function error (err) {
+      if (err) def.reject(err)
+    }
   }
 
   del (key) {
     const def = Q.defer()
-    this.getDb().then(db => db.del(key, (err) => {
-      if (err) def.reject(err)
-      else def.resolve()
-    }))
+    this.getDb().then(del, error)
     return def.promise
+
+    function del (db) {
+      db.del(key, (err) => {
+        if (err) def.reject(err)
+        else def.resolve()
+      })
+    }
+
+    function error (err) {
+      if (err) def.reject(err)
+    }
+  }
+
+  getKey(){
+    const def = Q.defer()
+    this.getDb().then(key, error)
+    return def.promise
+
+    function key(db){
+      def.resolve(db.key)
+    }
+
+    function error(err){
+      if(err) def.reject(err)
+    }
+  }
+
+  getLocalKey(){
+    const def = Q.defer()
+    this.getDb().then(key, error)
+    return def.promise
+
+    function key(db){
+      def.resolve(db.local.key)
+    }
+
+    function error(err){
+      if(err) def.reject(err)
+    }
+  }
+
+  getDiscoveryKey(){
+    const def = Q.defer()
+    this.getDb().then(key, error)
+    return def.promise
+
+    function key(db){
+      def.resolve(db.discoveryKey)
+    }
+
+    function error(err){
+      if(err) def.reject(err)
+    }
   }
 
   createKeyStore (storage, noEncryption) {
@@ -80,21 +145,34 @@ class DataObject {
     // lazy load KeyStore
     if (!KeyStore) KeyStore = require('./KeyStore')
 
-    const store = new KeyStore(storage, null, {noEncryption: noEncryption})
+    const store = new KeyStore(storage, null, {valueEncoding: 'utf-8', noEncryption: noEncryption})
+    let numKeys, storedKeys
     this.getDb().then(db => {
-      db.feeds.forEach(feed => {
+      storedKeys = 0
+      numKeys = db.feeds.length
+      for (let i = 0; i < db.feeds.length; i++) {
+        const feed = db.feeds[i]
         const key = feed.key.toString('hex')
-        utils.getBook(key).then(book => store.put(key, book))
-      })
-    })
+        utils.getBook(key).then(book => onBook(key, book)).done()
+      }
+    }).done()
     return store
+
+    function onBook (key, book) {
+      let str = JSON.stringify(book.serialize())
+      store.put(key, str).then(() => {
+        if (++storedKeys === numKeys) {
+          store.setPopulated()
+        }
+      }).done()
+    }
   }
 
   joinNetwork (opts) {
     opts = Object.assign({}, opts)
 
     const def = Q.defer()
-    this.getDb().then(createStream)
+    this.getDb().then(createStream).done()
 
     function createStream (db) {
       const stream = function (peer) {

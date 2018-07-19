@@ -3,8 +3,8 @@ const extend = require('xtend')
 
 module.exports = function (opts) {
   opts = Object.assign({}, opts)
-  opts.native = opts.native || {}
-  opts.proxy = opts.proxy || {}
+  opts.native = Object.assign({}, opts.native)
+  opts.proxy = Object.assign({}, opts.proxy)
   return {
     native: datDefaults(opts.native),
     proxy: extend({

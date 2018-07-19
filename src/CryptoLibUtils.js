@@ -20,7 +20,7 @@ class CryptoLibUtils {
       try {
         const retval = handler(keyStr, onBook)
         // handler can return nothing (-> then cb is used), a CryptoBook, or a Promise
-        if (retval instanceof CryptoBook) onBook()
+        if (retval instanceof CryptoBook) onBook(retval)
         else if (typeof retval === 'object') retval.then(onBook).done()
       } catch (err) {
         console.error(err)
