@@ -97,45 +97,45 @@ class DataObject {
     }
   }
 
-  getKey(){
+  getKey () {
     const def = Q.defer()
     this.getDb().then(key, error)
     return def.promise
 
-    function key(db){
+    function key (db) {
       def.resolve(db.key)
     }
 
-    function error(err){
-      if(err) def.reject(err)
+    function error (err) {
+      if (err) def.reject(err)
     }
   }
 
-  getLocalKey(){
+  getLocalKey () {
     const def = Q.defer()
     this.getDb().then(key, error)
     return def.promise
 
-    function key(db){
+    function key (db) {
       def.resolve(db.local.key)
     }
 
-    function error(err){
-      if(err) def.reject(err)
+    function error (err) {
+      if (err) def.reject(err)
     }
   }
 
-  getDiscoveryKey(){
+  getDiscoveryKey () {
     const def = Q.defer()
     this.getDb().then(key, error)
     return def.promise
 
-    function key(db){
+    function key (db) {
       def.resolve(db.discoveryKey)
     }
 
-    function error(err){
-      if(err) def.reject(err)
+    function error (err) {
+      if (err) def.reject(err)
     }
   }
 

@@ -36,6 +36,23 @@ For public DataObjects/Archives and to enable compatibility to the rest of the d
 
 ### [API](#api)
 
+DatFS follows the "everything is a file" philosophy. This follows always the same structure, 
+every Entity has the same default directories: `/profile, /apps, /outbox`.
+But calling the Entities by their address is unpractical, therefore a default directory structure is needed, e.g.:
+```
+/user/ ... currently logged in / mounted user Entity
+/user/profile ... user profile (JSON-formatted, at least has a field name)
+/user/apps/<app-name> ... installed (=referenced) apps 
+/user/
+/local/ ... device local Entity
+/local/profile ... device profile (JSON-formatted, at leas has a field name)
+/local/outbox/<hash> ... outbox of the local Entity
+/local/apps/ ... only locally installed apps
+/<dat-key>  ... other (not necessarily mounted) Entity
+/<dat-key>/outbox/<hash>  ... outbox of an entity
+```
+
+
 *TODO*
 
 ## Example visualisation
@@ -44,7 +61,7 @@ For public DataObjects/Archives and to enable compatibility to the rest of the d
 
 ## Entity
 
-An entity can be a device, app or user and has a unique id.<br>
+An entity can be a device, app or user and has a unique id and itself is again a DataObject<br>
 Every entity has a cryptographic public and a private key, where the public key is visible to anyone and the private key is stored in a safe place.<br>
 To make things easier the entity id is using libp2p's [peer-id](https://github.com/libp2p/js-peer-id) which consists of at least a public key and its SHA-256 hash value(-[multihash](https://github.com/multiformats/multihash)).
 If the private key is known it is also stored in the peer-id object.
@@ -55,7 +72,7 @@ An entity may also include some additional information:
 * Description (developer, version, permissions, ...) if the entity is an app
 
 <br>
-*TODO: do research on [hyperidentity](https://github.com/poga/hyperidentity) *
+*TODO: do research on [hyperidentity](https://github.com/poga/hyperidentity)*
 
 ### Outbox
 
@@ -70,11 +87,11 @@ A DataObject can be a file, directory, symbolic link or just a blob of data.
 DatFS logically is a tree with DataObjects as nodes. A file or blob is a leaf node and a directory or a symbolic is a node that refers to one many further DataObject(s).<br>
 DataObjects are packed into Dat [HyperDB](https://github.com/mafintosh/hyperdb) instances induvidially or in groups, depending on multiple factors.<br>
 If a DataObject is a subdirectory of a other DataObject, the HyperDb instance is simply "mounted" onto a directory of the parent DataObject.<br>
-*TODO: convince the dat team to implement a way to mount a hyperdb instance in an other hyperdb (or implement it)*<br>
+*TODO: convince the dat team to implement a way to mount a hyperdb instance in an other hyperdb (already implemented, see [hyperdb-encrypted](https://github.com/fsteff/hyperdb-encrypted))*<br>
 HyperDB uses a number of [hypercore](https://github.com/mafintosh/hypercore) append-only feeds, which have to be encrypted if not meant to be publically available.<br>
 To make it possible to add and remove entities that are able to read a DataObject, each hypercore feed has to be encrypted induvidially using a number of keys.<br>
 If an entity should not be able to read future changes anymore, a new key is generated for every hypercore feed. Every future change, which is nothing other than a new entry in one of the feeds, this uses now a new key and the entity is not able to read it anymore.<br>
-*For encrypting the data a modified version of HyperDB built on the top of [hypercore-encrypted](https://github.com/fsteff/hypercore-encrypted) (or something similar as this, for now, is only a proof of concept) could be of use.*<br><br>
+*For encrypting the data a modified version of HyperDB built on the top of [hypercore-encrypted](https://github.com/fsteff/hypercore-encrypted) (or something similar as this, for now, is only a proof of concept) could be of use.*<br>
 To make the management of readers and writers of induvidial DataObjects easier, hyperdb could use some more features: *(TODO: convince the dat team to implement that or implement ourself)*<br>
 * Removing writers (currently not possible, but will for sure be added)
 * Sharing the feeds containing the writers between multiple hyperdb instances
@@ -82,8 +99,9 @@ To make the management of readers and writers of induvidial DataObjects easier, 
 
 ## Routing
 
+*Note: for now only Dat's default routing is available*
 DatFS uses [discovery-swarm](https://github.com/mafintosh/discovery-swarm) and/or [libp2p](https://libp2p.io/) for routing.
-**Default usecase (libp2p):**
+*Default usecase (libp2p):*
 A set of swarms of all known and trusted entities is created using libp2p.<br>
 Such a swarm consists of a small (~ max. 100) number of entities that have something in common. Every entity/node has either a direct or indirect connection to every other node in the swarm.<br>
 *(TODO: do some research about to what extent this is implemented in libp2p)*<br>

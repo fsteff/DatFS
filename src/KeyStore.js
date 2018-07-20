@@ -14,7 +14,7 @@ class KeyStore extends DataObject {
     this._populated = Q.defer()
 
     const self = this
-    this.getDb().then(()=>{
+    this.getDb().then(() => {
       cryptoLib.registerOnBookNotFound(tryRegisterKey)
     })
 
@@ -25,7 +25,7 @@ class KeyStore extends DataObject {
           cryptoLib.addBook(id, deserialized)
           cb(deserialized)
         }
-      }, err => {throw err})
+      }, err => { throw err })
     }
   }
 
@@ -49,7 +49,7 @@ class KeyStore extends DataObject {
       })
     }
 
-    function error(err){
+    function error (err) {
       def.reject(err)
     }
   }

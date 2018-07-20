@@ -12,7 +12,7 @@ tape('keystore from object', t => {
   const keys = obj.createKeyStore(ram)
   obj.getLocalKey().then(onDb, err)
 
-  function onDb(local){
+  function onDb (local) {
     t.ok(local instanceof Buffer)
     keys.getKeyBook(local).then(onKey, err)
   }
@@ -21,22 +21,20 @@ tape('keystore from object', t => {
     let book = new CryptoBook(key)
     t.ok(book instanceof CryptoBook)
     obj.getLocalKey().then(local => {
-        let fromLib = cryptoLib.getBook(local.toString('hex'))
-        let serialized = JSON.stringify(fromLib.serialize())
-        t.same(serialized, key)
-        flushLib(local, serialized)
+      let fromLib = cryptoLib.getBook(local.toString('hex'))
+      let serialized = JSON.stringify(fromLib.serialize())
+      t.same(serialized, key)
+      flushLib(local, serialized)
     }, err)
-    
   }
 
-  function flushLib(local, actual){
-      cryptoLib._books = {}
-      // check if KeyStore is registered as onBookNotFoundHandler
-      utils.getBook(local.toString('hex')).then((book)=>{
-        let serialized = JSON.stringify(book.serialize())
-        t.same(actual, serialized)
-      },err)
-      
+  function flushLib (local, actual) {
+    cryptoLib._books = {}
+    // check if KeyStore is registered as onBookNotFoundHandler
+    utils.getBook(local.toString('hex')).then((book) => {
+      let serialized = JSON.stringify(book.serialize())
+      t.same(actual, serialized)
+    }, err)
   }
 
   function err (msg) {
