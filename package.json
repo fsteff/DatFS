@@ -28,7 +28,6 @@
     "hyperdb": "^3.3.0",
     "hyperdb-encrypted": "^3.3.0",
     "js-base64": "^2.4.8",
-    "multihashes": "^0.4.13",
     "q": "^1.5.1",
     "sodium-universal": "^2.0.0",
     "websocket-stream": "^5.1.2",
