@@ -2,6 +2,7 @@ const DataObject = require('../index').DataObject
 const cryptoLib = require('hypercore-encrypted').CryptoLib.getInstance()
 const tape = require('tape')
 const ram = require('random-access-memory')
+const Link = require('../src/Link')
 
 function create (key, opts) {
   opts = opts || {valueEncoding: 'utf-8'}
@@ -69,5 +70,21 @@ tape('replicate & authorize', t => {
 
   function read () {
     obj.get('hallo').then((data) => t.same(data[0].value, 'welt'))
+  }
+})
+
+tape('link & serialisation', t => {
+  t.plan(1)
+  const a = new DataObject(ram)
+  Link.fromObject(a)
+    .then(link => a.put('child', link)
+      .then(read)
+      .done())
+    .done()
+
+  function read () {
+    return a.get('child').then(link => {
+      t.ok(link[0].value instanceof Link)
+    })
   }
 })

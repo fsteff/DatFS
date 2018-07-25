@@ -1,4 +1,5 @@
 const DB = require('hyperdb-encrypted')
+const Encoding = require('./Encoding')
 const PublicDB = require('hyperdb')
 const Q = require('q')
 const utils = require('./CryptoLibUtils')
@@ -11,6 +12,7 @@ let KeyStore = null
 class DataObject {
   constructor (storage, key, opts) {
     opts = Object.assign({}, opts)
+    opts.valueEncoding = 'binary'
     this.encrypted = !opts.noEncryption
     const create = opts.noEncryption ? PublicDB : DB
     const self = this
@@ -47,7 +49,8 @@ class DataObject {
 
   put (key, value, opts) {
     const def = Q.defer()
-    this.getDb().then(put, error)
+    value = Encoding.encode(value)
+    this.getDb().then(put, error).done()
     return def.promise
 
     function put (db) {
@@ -65,16 +68,22 @@ class DataObject {
   get (key, opts) {
     opts = Object.assign({}, opts)
     const def = Q.defer()
-    this.getDb().then(get, error)
+    this.getDb().then(get, error).done()
     return def.promise
 
     function get (db) {
       db.get(key, opts, (err, data) => {
-        if (err) def.reject(err)
-        else def.resolve(data)
+        if (err) throw err instanceof Error ? err : new Error(err)
+
+        let ret = []
+        for (let i = 0; i < data.length; i++) {
+          ret[i] = {}
+          ret[i].key = data[i].key
+          ret[i].value = Encoding.decode(data[i].value)
+        }
+        def.resolve(ret)
       })
     }
-
     function error (err) {
       if (err) def.reject(err)
     }
@@ -82,7 +91,7 @@ class DataObject {
 
   del (key) {
     const def = Q.defer()
-    this.getDb().then(del, error)
+    this.getDb().then(del, error).done()
     return def.promise
 
     function del (db) {
@@ -99,7 +108,7 @@ class DataObject {
 
   getKey () {
     const def = Q.defer()
-    this.getDb().then(key, error)
+    this.getDb().then(key, error).done()
     return def.promise
 
     function key (db) {
@@ -113,7 +122,7 @@ class DataObject {
 
   getLocalKey () {
     const def = Q.defer()
-    this.getDb().then(key, error)
+    this.getDb().then(key, error).done()
     return def.promise
 
     function key (db) {
@@ -127,7 +136,7 @@ class DataObject {
 
   getDiscoveryKey () {
     const def = Q.defer()
-    this.getDb().then(key, error)
+    this.getDb().then(key, error).done()
     return def.promise
 
     function key (db) {
@@ -145,7 +154,7 @@ class DataObject {
     // lazy load KeyStore
     if (!KeyStore) KeyStore = require('./KeyStore')
 
-    const store = new KeyStore(storage, null, {valueEncoding: 'utf-8', noEncryption: noEncryption})
+    const store = new KeyStore(storage, null, {noEncryption: noEncryption})
     let numKeys, storedKeys
     this.getDb().then(db => {
       storedKeys = 0
