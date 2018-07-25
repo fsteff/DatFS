@@ -61,6 +61,9 @@ class Entity extends DataObject {
     const self = this
     let name = null
     let key = null
+    if (!storage) {
+      throw new Error('getOubox* needs a storage specified')
+    }
     return other.getKey().then(calc)
 
     function calc (k) {

@@ -3,7 +3,7 @@ const crypto = require('sodium-universal')
 const hypercore = require('hypercore-encrypted')
 const Swarm = require('./Swarm')
 const CryptoBook = hypercore.CryptoBook
-const Base64 = require('js-base64').Base64
+const cryptoLib = hypercore.CryptoLib.getInstance()
 const utils = require('./CryptoLibUtils')
 const Q = require('q')
 const debug = require('debug')('Outbox')
@@ -42,7 +42,7 @@ class Outbox {
     }
 
     function error (err) {
-      if (err) this._feedPromise.reject(err)
+      if (err) self._feedPromise.reject(err)
       debug(err.toString())
     }
   }
@@ -50,7 +50,11 @@ class Outbox {
   getFeed () {
     const def = Q.defer()
     if (this._feed) def.resolve(this._feed)
-    else this._feedPromise.promise.then(feed => def.resolve(feed), err => def.reject(err)).done()
+    else {
+      this._feedPromise.promise.then(
+        feed => def.resolve(feed),
+        err => def.reject(err)).done()
+    }
     return def.promise
   }
 
@@ -125,7 +129,9 @@ class Outbox {
     }
 
     function onKey (key) {
-      toKey = key
+      // need to convert key from ed25519 to curve25519
+      toKey = Buffer.alloc(crypto.crypto_box_PUBLICKEYBYTES)
+      crypto.crypto_sign_ed25519_pk_to_curve25519(toKey, key)
     }
 
     function onBook (b) {
@@ -137,9 +143,7 @@ class Outbox {
       let msgBuffer = Buffer.from(serialized)
       let cipherBuffer = Buffer.alloc(crypto.crypto_box_SEALBYTES + msgBuffer.length)
       crypto.crypto_box_seal(cipherBuffer, msgBuffer, toKey)
-      let str = cipherBuffer.toString('hex')
-      let cipherStr = str // Base64.btoa(str)
-      //console.log(str + '\n -> ' + cipherStr + '\n #################################')
+      let cipherStr = cipherBuffer.toString('hex')
       def.resolve(cipherStr)
     }
 
@@ -149,22 +153,35 @@ class Outbox {
   }
 
   _openSealedBox (sealedbox) {
-    if (typeof sealedbox !== 'string') { sealedbox = sealedbox.toString() } // utf-8?
-    const sealed64 = sealedbox // Base64.atob(sealedbox)
-    //console.log(sealedbox + '\n -> ' + sealed64+ '\n #################################')
-    const sealedBuf = Buffer.from(sealed64, 'hex')
+    if (typeof sealedbox !== 'string') { sealedbox = sealedbox.toString() }
+    const sealedBuf = Buffer.from(sealedbox, 'hex')
     const self = this
     return this.to.getDb().then(onDb)
 
     function onDb (db) {
-      const sk = db.source.secretKey
-      const pk = db.key
+      // need to convert keys from ed25519 to curve25519
+      const pk = Buffer.alloc(crypto.crypto_box_PUBLICKEYBYTES)
+      crypto.crypto_sign_ed25519_pk_to_curve25519(pk, db.source.key)
+
+      const sk = Buffer.alloc(crypto.crypto_box_SECRETKEYBYTES)
+      crypto.crypto_sign_ed25519_sk_to_curve25519(sk, db.source.secretKey)
+
       if (!sk) throw new Error('Entity´s secret key not available')
 
       const msgBuf = Buffer.alloc(sealedBuf.length - crypto.crypto_box_SEALBYTES)
-      crypto.crypto_box_seal_open(msgBuf, sealedBuf, pk, sk)
+      let succ = crypto.crypto_box_seal_open(msgBuf, sealedBuf, pk, sk)
+      if (!succ || isZero(msgBuf)) {
+        throw new Error('could not decrypt the sealed box')
+      }
       const msgStr = msgBuf.toString()
       return onData(msgStr)
+    }
+
+    function isZero (buf) {
+      for (let i = 0; i < buf.length; i++) {
+        if (buf[i] !== 0) return false
+      }
+      return true
     }
 
     function onData (str) {
@@ -175,7 +192,8 @@ class Outbox {
 
       self.key = Buffer.from(data.key, 'hex')
       // let the book register itself to the cryptoLib
-      return new CryptoBook(data.book)
+      let book = new CryptoBook(data.book)
+      cryptoLib.addBook(self.key, book)
       // TODO: add to local keystore?
     }
   }
