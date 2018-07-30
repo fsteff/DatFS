@@ -26,14 +26,14 @@ class LocalStore {
   }
 
   put (path, value) {
-    const child = this.getDb(path)
+    const child = this.getDataObject(path)
     if (!child) throw new Error('invalid path')
     const rest = path.substring(child.relpath.length)
     return child.db.put(rest, value)
   }
 
   get (path) {
-    const child = this.getDb(path)
+    const child = this.getDataObject(path)
     if (!child) throw new Error('invalid path')
     const rest = path.substring(child.relpath.length)
     return child.db.get(rest)
@@ -76,7 +76,7 @@ class LocalStore {
     }
   }
 
-  getDb (path) {
+  getDataObject (path) {
     const split = this._splitPath(path)
     let current = this.links
     let retval = {db: this.db, relpath: ''}

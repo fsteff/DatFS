@@ -10,11 +10,7 @@ class Link {
   constructor (obj) {
     this.link = null
     if (obj && typeof obj === 'string') {
-      if (obj.startsWith(DATAOBJECT) || obj.startsWith(ENTITY)) {
-        this.link = obj
-      } else {
-        throw new Error('invalid link string: ' + obj)
-      }
+      this.link = obj
     } else {
       throw new Error('invalid parameter obj: has to be a string')
     }
@@ -28,9 +24,10 @@ class Link {
     let key = null
     if (this.link.startsWith(DATAOBJECT)) {
       key = this.link.substring(DATAOBJECT.length)
-    }
-    if (this.link.startsWith(ENTITY)) {
+    } else if (this.link.startsWith(ENTITY)) {
       key = this.link.substring(ENTITY.length)
+    } else {
+      throw new Error('cannot get Key, does not refer to a DataObject')
     }
     if (toBuffer && key) {
       return Buffer.from(key, 'hex')
@@ -43,11 +40,16 @@ class Link {
     if (this.link.startsWith(DATAOBJECT)) {
       const key = this.link.substring(DATAOBJECT.length)
       return new DataObject(storage, key)
-    }
-    if (this.link.startsWith(ENTITY)) {
+    } else if (this.link.startsWith(ENTITY)) {
       const key = this.link.substring(ENTITY.length)
       return new Entity(storage, key)
+    } else {
+      throw new Error('cannot instantiate, link does not refer to a DataObject')
     }
+  }
+
+  isDataObject () {
+    return this.link.startsWith(DATAOBJECT) || this.link.startsWith(ENTITY)
   }
 
   static fromObject (obj) {

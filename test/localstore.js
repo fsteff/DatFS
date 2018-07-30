@@ -20,7 +20,7 @@ tape('link & read', t => {
   }
 
   function check () {
-    const child = store.getDb('/a/hello')
+    const child = store.getDataObject('/a/hello')
     t.same(child.relpath, '/a/')
     return child.db.get('hello').then(val => {
       t.same(val[0].value, 'world')

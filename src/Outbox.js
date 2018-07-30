@@ -208,7 +208,7 @@ class Outbox {
       const stream = function (peer) {
         var stream = feed.replicate({
           upload: !(opts.upload === false),
-          download: opts.download, // ok like that?
+          download: opts.download, // TODO: ok like that?
           live: !opts.end
         })
         stream.on('close', function () {
