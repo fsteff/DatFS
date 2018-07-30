@@ -24,6 +24,21 @@ class Link {
     return this.link
   }
 
+  getKey (toBuffer) {
+    let key = null
+    if (this.link.startsWith(DATAOBJECT)) {
+      key = this.link.substring(DATAOBJECT.length)
+    }
+    if (this.link.startsWith(ENTITY)) {
+      key = this.link.substring(ENTITY.length)
+    }
+    if (toBuffer && key) {
+      return Buffer.from(key, 'hex')
+    } else {
+      return key
+    }
+  }
+
   create (storage) {
     if (this.link.startsWith(DATAOBJECT)) {
       const key = this.link.substring(DATAOBJECT.length)

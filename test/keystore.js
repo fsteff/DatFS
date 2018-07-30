@@ -14,7 +14,7 @@ tape('keystore from object', t => {
 
   function onDb (local) {
     t.ok(local instanceof Buffer)
-    keys.getKeyBook(local).then(onKey, err)
+    keys.getKeyBook(local).then(onKey, err).done()
   }
 
   function onKey (key) {
@@ -25,7 +25,7 @@ tape('keystore from object', t => {
       let serialized = JSON.stringify(fromLib.serialize())
       t.same(serialized, key)
       flushLib(local, serialized)
-    }, err)
+    }, err).done()
   }
 
   function flushLib (local, actual) {
@@ -34,7 +34,7 @@ tape('keystore from object', t => {
     utils.getBook(local.toString('hex')).then((book) => {
       let serialized = JSON.stringify(book.serialize())
       t.same(actual, serialized)
-    }, err)
+    }, err).done()
   }
 
   function err (msg) {

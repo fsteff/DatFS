@@ -5,6 +5,7 @@ const Q = require('q')
 const utils = require('./CryptoLibUtils')
 const Swarm = require('./Swarm')
 const debug = require('debug')('DataObject')
+const crypto = require('hypercore-crypto')
 
 // KeyStore is lazy loaded to avoid cyclic references
 let KeyStore = null
@@ -30,7 +31,13 @@ class DataObject {
 
     function createNow () {
       if (!self._db) {
-        const db = create(storage, key, opts)
+        if (!key) {
+          const keypair = crypto.keyPair()
+          key = keypair.publicKey
+          opts.secretKey = keypair.secretKey
+        }
+        let store = storage.name === 'rad' ? storage(key.toString('hex')) : storage
+        const db = create(store, key, opts)
         debug('created hyperdb for ' + keyStr)
         db.ready(() => {
           debug('hyperdb for ' + keyStr + ' is ready')
@@ -50,7 +57,7 @@ class DataObject {
   put (key, value, opts) {
     const def = Q.defer()
     value = Encoding.encode(value)
-    this.getDb().then(put, error).done()
+    this.getDb().then(put, error).catch(error).done()
     return def.promise
 
     function put (db) {
