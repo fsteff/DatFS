@@ -8,7 +8,7 @@ module.exports = function (opts) {
   return {
     native: datDefaults(opts.native),
     proxy: extend({
-      server: ['sw://localhost:3495']
+      server: ['ws://localhost:3495']
     }, opts.proxy)
   }
 }

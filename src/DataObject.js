@@ -210,7 +210,9 @@ class DataObject {
       }
 
       const swarm = new Swarm(stream, opts)
-      swarm.join(db.discoveryKey, { announce: !(opts.upload === false) })
+      swarm.join(db.discoveryKey, { announce: !(opts.upload === false) }, () => {
+        debug('got a connection')
+      })
 
       def.resolve(swarm)
     }

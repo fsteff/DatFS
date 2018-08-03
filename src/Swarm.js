@@ -1,13 +1,10 @@
-// discovery-proxy is not ready for this usecase
-// const Proxy = require('discovery-proxy/client')
+const Proxy = require('discovery-proxy/client')
 const defaults = require('./SwarmDefaults')
 const Q = require('q')
-// const websocket = require('websocket-stream')
+const websocket = require('websocket-stream')
 var nativeSwarm
-try {
+if (typeof window === 'undefined') {
   nativeSwarm = require('discovery-swarm')
-} catch (err) {
-  console.log('native tcp/utp discovery-swarm not supported')
 }
 
 class Swarm {
@@ -17,35 +14,32 @@ class Swarm {
     let config = defaults(opts)
     this.joined = []
 
-    if (nativeSwarm) {
+    if (nativeSwarm) { // eslint-disable-line
       config.native.stream = stream
       this.swarm = nativeSwarm(config.native)
       this.swarm.once('error', () => self.swarm.listen(0))
       this.swarm.listen(opts.port || 3282)
     } else {
-      console.error('discovery-proxy not supported (for now)')
+      for (let i = 0; (!this.swarm) && i < config.proxy.server.length; i++) {
+        let ws
+        try {
+          if (typeof WebSocket !== 'undefined') { // eslint-disable-line
+            // in the browser
+            let socket = new WebSocket(config.proxy.server[i]) // eslint-disable-line
+            socket.binaryType = 'arraybuffer'
+            ws = websocket(socket)
+          } else {
+            // in node
+            ws = websocket(config.proxy.server[i])
+          }
+          config.proxy.stream = stream
+          config.proxy.connection = ws
+          this.swarm = new Proxy(config.proxy)
+        } catch (err) {
+          console.error(err)
+        }
+      }
     }
-
-    /* else{
-            for(let i = 0; (! this.swarm) && i < config.proxy.server.length; i++){
-                let ws;
-                try{
-                    if(WebSocket){
-                        // in the browser
-                        let socket = new WebSocket(config.proxy.server[i])
-                        socket.binaryType = 'arraybuffer'
-                        ws = websocket(socket)
-                    }else{
-                        // in node
-                        ws = websocket(config.proxy.server[i])
-                    }
-                    let dss = new Proxy({
-                        connection: ws,
-                    })
-                }
-
-            }
-        } */
   }
 
   join (key, opts, cb) {
@@ -62,10 +56,13 @@ class Swarm {
     const self = this
     this.joined.forEach(key =>
       self.leave(key))
-    this.swarm.destroy(function () {
-      delete this.swarm
-      def.resolve()
-    })
+    // destroy is only available on native
+    if (typeof this.swarm.destroy === 'function') {
+      this.swarm.destroy(function () {
+        delete this.swarm
+        def.resolve()
+      })
+    }
     return def.promise
   }
 }

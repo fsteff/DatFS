@@ -1,4 +1,4 @@
-const crypto = require('sodium-universal')
+const _crypto = require('./Crypto')
 // TODO: add libsodium-wrappers, sodium-javascript does not include sealed boxes
 const hypercore = require('hypercore-encrypted')
 const Swarm = require('./Swarm')
@@ -7,6 +7,7 @@ const cryptoLib = hypercore.CryptoLib.getInstance()
 const utils = require('./CryptoLibUtils')
 const Q = require('q')
 const debug = require('debug')('Outbox')
+let crypto = null
 
 class Outbox {
   /**
@@ -25,11 +26,17 @@ class Outbox {
 
     const self = this
 
-    if (sealedbox) {
-      this._openSealedBox(sealedbox).then(create, error)
-    } else {
-      create()
+    function onCrypto () {
+      if (sealedbox) {
+        self._openSealedBox(sealedbox).then(create, error)
+      } else {
+        create()
+      }
     }
+
+    _crypto.then(sodium => {
+      crypto = sodium
+    }).then(onCrypto).done()
 
     function create () {
       const core = hypercore(storage, self.key, {valueEncoding: 'utf-8'})
@@ -37,7 +44,7 @@ class Outbox {
         if (err) return error(err)
         self._feed = core
         self._feedPromise.resolve(core)
-        debug('outbox ' + core.key.toString('hex') + ' is ready')
+        debug('outbox ' + toHex(core.key) + ' is ready')
       })
     }
 
@@ -130,20 +137,18 @@ class Outbox {
 
     function onKey (key) {
       // need to convert key from ed25519 to curve25519
-      toKey = Buffer.alloc(crypto.crypto_box_PUBLICKEYBYTES)
-      crypto.crypto_sign_ed25519_pk_to_curve25519(toKey, key)
+      toKey = crypto.crypto_sign_ed25519_pk_to_curve25519(key)
     }
 
     function onBook (b) {
       let book = b.serialize()
       let data = {}
       data.book = book
-      data.key = feed.key.toString('hex')
+      data.key = toHex(feed.key)
       let serialized = JSON.stringify(data)
       let msgBuffer = Buffer.from(serialized)
-      let cipherBuffer = Buffer.alloc(crypto.crypto_box_SEALBYTES + msgBuffer.length)
-      crypto.crypto_box_seal(cipherBuffer, msgBuffer, toKey)
-      let cipherStr = cipherBuffer.toString('hex')
+      let cipherBuffer = crypto.crypto_box_seal(msgBuffer, toKey)
+      let cipherStr = toHex(cipherBuffer)
       def.resolve(cipherStr)
     }
 
@@ -160,20 +165,17 @@ class Outbox {
 
     function onDb (db) {
       // need to convert keys from ed25519 to curve25519
-      const pk = Buffer.alloc(crypto.crypto_box_PUBLICKEYBYTES)
-      crypto.crypto_sign_ed25519_pk_to_curve25519(pk, db.source.key)
+      const pk = crypto.crypto_sign_ed25519_pk_to_curve25519(db.source.key)
 
-      const sk = Buffer.alloc(crypto.crypto_box_SECRETKEYBYTES)
-      crypto.crypto_sign_ed25519_sk_to_curve25519(sk, db.source.secretKey)
+      const sk = crypto.crypto_sign_ed25519_sk_to_curve25519(db.source.secretKey)
 
       if (!sk) throw new Error('Entity´s secret key not available')
 
-      const msgBuf = Buffer.alloc(sealedBuf.length - crypto.crypto_box_SEALBYTES)
-      let succ = crypto.crypto_box_seal_open(msgBuf, sealedBuf, pk, sk)
-      if (!succ || isZero(msgBuf)) {
+      const msgBuf = crypto.crypto_box_seal_open(sealedBuf, pk, sk)
+      if (!msgBuf || isZero(msgBuf)) {
         throw new Error('could not decrypt the sealed box')
       }
-      const msgStr = msgBuf.toString()
+      const msgStr = toString(msgBuf)
       return onData(msgStr)
     }
 
@@ -224,11 +226,34 @@ class Outbox {
       }
 
       const swarm = new Swarm(stream, opts)
-      swarm.join(feed.discoveryKey, { announce: !(opts.upload === false) })
+      swarm.join(feed.discoveryKey, { announce: !(opts.upload === false) }, () => {
+        debug('got a connection')
+      })
 
       def.resolve(swarm)
     }
     return def.promise
+  }
+}
+
+function toHex (buffer) {
+  if (typeof window !== 'undefined') {
+    return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('')
+  } else {
+    return buffer.toString('hex')
+  }
+}
+
+function toString (buffer) {
+  if (!buffer) {
+    throw new Error('nullpointer buffer')
+  }
+  if (typeof window !== 'undefined') {
+    let encodedString = String.fromCharCode.apply(null, buffer)
+    let decodedString = decodeURIComponent(escape(encodedString))
+    return decodedString
+  } else {
+    return buffer.toString('utf8')
   }
 }
 
